@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"momen/entities"
 	"momen/input_post"
 	"momen/repositories"
@@ -10,6 +11,7 @@ import (
 
 type Service interface {
 	RegisterUser(input inputpost.RegisterInput)(entities.User, error)
+	LoginUser(input inputpost.LoginInput)(entities.User, error)
 }
 
 type service struct {
@@ -36,4 +38,28 @@ func (s *service) RegisterUser(input inputpost.RegisterInput)(entities.User, err
 	}
 
 	return newUser, nil
+}
+
+func (s *service) LoginUser(input inputpost.LoginInput) (entities.User, error){
+	email := input.Email
+	password := input.Password
+
+	user, err := s.repository.FindByEmail(email)
+
+	if err != nil {
+		return user, err
+	}
+
+	if user.ID == 0 {
+		return user, errors.New("No user found")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash),[]byte(password) )
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+	
 }

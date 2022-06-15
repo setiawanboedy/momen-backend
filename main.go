@@ -26,6 +26,9 @@ func main() {
 	userRepository := repositories.NewRepository(db)
 	userService := services.NewService(userRepository)
 
+	// user, err := userService.LoginUser()
+
+
 	userHandler := handler.NewUserHandler(userService)
 
 	router := gin.Default()
@@ -34,6 +37,7 @@ func main() {
 
 	//endpoint
 	api.POST("/users", userHandler.RegiterUser)
+	api.POST("/sessions", userHandler.LoginUser)
 
 	router.Run()
 
