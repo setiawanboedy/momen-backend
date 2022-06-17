@@ -1,7 +1,7 @@
 package handler
 
 import (
-
+	"fmt"
 	"momen/helper"
 	"momen/input_post"
 	"momen/services"
@@ -91,4 +91,100 @@ func (h *userHandler) LoginUser(c *gin.Context)  {
 	response := helper.APIResponse(meta, formater)
 
 	c.JSON(http.StatusOK, response)
+}
+
+// cek email availabelity
+func (h *userHandler) CheckEamilAvailablelity(c *gin.Context)  {
+	var input inputpost.CheckEamilInput
+
+	err := c.ShouldBindJSON(&input)
+	metaError := helper.Meta{
+		Message: "Email checking failed", Code: http.StatusUnprocessableEntity, Status: "Error",
+	}
+	if err != nil {
+		errors := ErrorValidationHandler(err)
+
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse(metaError, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+
+
+	}
+
+	isEmailAvailable, err := h.userService.IsEmailAvailable(input)
+
+	if err != nil {
+		errorMessage := gin.H{"errors": "Server error"}
+
+		response := helper.APIResponse(metaError, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	
+
+	data := gin.H{
+		"is_available": isEmailAvailable,
+	}
+
+	metaMessage := "Email has been used"
+
+	if isEmailAvailable{
+		metaMessage = "Email is Available"
+	}
+
+	meta := helper.Meta{
+		Message: metaMessage, Code: http.StatusOK, Status: "Success",
+	}
+
+	response := helper.APIResponse(meta, data)
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *userHandler) UploadAvatar(c *gin.Context)  {
+
+	file, err := c.FormFile("avatar")
+	data := gin.H{"is_uplaoded": false}
+	metaError := helper.Meta{
+		Message: "Failed to upload", Code: http.StatusBadRequest, Status: "error",
+	}
+	if err != nil {
+		response := helper.APIResponse(metaError, data)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	userID := 12
+	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
+	err = c.SaveUploadedFile(file, path)
+
+	if err != nil {
+		response := helper.APIResponse(metaError, data)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+		
+	}
+
+	_, err = h.userService.SaveAvatar(userID, path)
+
+	if err != nil {
+		response := helper.APIResponse(metaError, data)
+
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	data = gin.H{"is_uplaoded": true}
+	meta := helper.Meta{
+		Message: "Avatar successfully to upload", Code: http.StatusOK, Status: "success",
+	}
+	response := helper.APIResponse(meta, data)
+
+	c.JSON(http.StatusOK, response)
+		
+
 }
