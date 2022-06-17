@@ -2,11 +2,16 @@ package main
 
 import (
 	"log"
+	"net/http"
+	"strings"
 
+	"momen/auth"
 	"momen/handler"
+	"momen/helper"
 	"momen/repositories"
 	"momen/services"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,7 +21,7 @@ func main() {
 
 	// database
 	dsn := "root:@tcp(127.0.0.1:3306)/momen?charset=utf8mb4&parseTime=True&loc=Local"
-  	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	// cek database
 	if err != nil {
@@ -25,11 +30,9 @@ func main() {
 
 	userRepository := repositories.NewRepository(db)
 	userService := services.NewService(userRepository)
+	authService := auth.NewService()
 
-	// user, err := userService.LoginUser()
-
-
-	userHandler := handler.NewUserHandler(userService)
+	userHandler := handler.NewUserHandler(userService, authService)
 
 	router := gin.Default()
 
@@ -39,11 +42,68 @@ func main() {
 	api.POST("/users", userHandler.RegiterUser)
 	api.POST("/sessions", userHandler.LoginUser)
 	api.POST("/email_chekers", userHandler.CheckEamilAvailablelity)
-	api.POST("/avatar", userHandler.UploadAvatar)
+	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
 
 	router.Run()
 
 }
 
-//controller handler
+func authMiddleware(authService auth.AuthService, userService services.Service) gin.HandlerFunc {
+	// Middleware
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
 
+		if !strings.Contains(authHeader, "Bearer") {
+			meta := helper.Meta{
+				Message: "Unauthorized", Code: http.StatusUnauthorized, Status: "error",
+			}
+			response := helper.APIResponse(meta, nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		tokenString := ""
+		arrayToken := strings.Split(authHeader, " ")
+		
+		if len(arrayToken) == 2 {
+			tokenString = arrayToken[1]
+		}
+		token, err := authService.ValidateToken(tokenString)
+		if err != nil {
+			meta := helper.Meta{
+				Message: "Unauthorized", Code: http.StatusUnauthorized, Status: "error",
+			}
+			response := helper.APIResponse(meta, nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		claim, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			meta := helper.Meta{
+				Message: "Unauthorized", Code: http.StatusUnauthorized, Status: "error",
+			}
+			response := helper.APIResponse(meta, nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		userID := int(claim["user_id"].(float64))
+
+		user, err := userService.GetUserByID(userID)
+
+		if err != nil {
+			meta := helper.Meta{
+				Message: "Unauthorized", Code: http.StatusUnauthorized, Status: "error",
+			}
+			response := helper.APIResponse(meta, nil)
+			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
+			return
+		}
+		c.Set("currentUser", user)
+	}
+}
+
+// ambil nilai header authorization
+// dari header ambil dari token
+// validasi token
+// ambil user_id
+// ambil user dari db berdasarkan id lewat sevice
+// set context isinya user

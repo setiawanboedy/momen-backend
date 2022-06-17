@@ -2,6 +2,8 @@ package handler
 
 import (
 	"fmt"
+	"momen/auth"
+	"momen/entities"
 	"momen/helper"
 	"momen/input_post"
 	"momen/services"
@@ -12,10 +14,11 @@ import (
 
 type userHandler struct {
 	userService services.Service
+	authService auth.AuthService
 }
 
-func NewUserHandler(userService services.Service) *userHandler {
-	return &userHandler{userService}
+func NewUserHandler(userService services.Service, authService auth.AuthService) *userHandler {
+	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegiterUser(c *gin.Context) {
@@ -25,7 +28,7 @@ func (h *userHandler) RegiterUser(c *gin.Context) {
 	metaError := helper.Meta{
 		Message: "Register Account Failed", Code: http.StatusUnprocessableEntity, Status: "Error",
 	}
-	
+
 	if err != nil {
 		errors := ErrorValidationHandler(err)
 
@@ -44,7 +47,15 @@ func (h *userHandler) RegiterUser(c *gin.Context) {
 		return
 	}
 
-	formater := helper.FormatUser(user, "token")
+	token, err := h.authService.GenerateToken(user.ID)
+
+	if err != nil {
+		response := helper.APIResponse(metaError, nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formater := helper.FormatUser(user, token)
 	meta := helper.Meta{
 		Message: "Account has been created", Code: http.StatusOK, Status: "Success",
 	}
@@ -54,7 +65,7 @@ func (h *userHandler) RegiterUser(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *userHandler) LoginUser(c *gin.Context)  {
+func (h *userHandler) LoginUser(c *gin.Context) {
 	var input inputpost.LoginInput
 
 	err := c.ShouldBindJSON(&input)
@@ -70,7 +81,6 @@ func (h *userHandler) LoginUser(c *gin.Context)  {
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 
-
 	}
 
 	user, err := h.userService.LoginUser(input)
@@ -83,7 +93,15 @@ func (h *userHandler) LoginUser(c *gin.Context)  {
 		return
 	}
 
-	formater := helper.FormatUser(user, "token")
+	token, err := h.authService.GenerateToken(user.ID)
+
+	if err != nil {
+		response := helper.APIResponse(metaError, nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formater := helper.FormatUser(user, token)
 	meta := helper.Meta{
 		Message: "Login Successfully", Code: http.StatusOK, Status: "Success",
 	}
@@ -94,7 +112,7 @@ func (h *userHandler) LoginUser(c *gin.Context)  {
 }
 
 // cek email availabelity
-func (h *userHandler) CheckEamilAvailablelity(c *gin.Context)  {
+func (h *userHandler) CheckEamilAvailablelity(c *gin.Context) {
 	var input inputpost.CheckEamilInput
 
 	err := c.ShouldBindJSON(&input)
@@ -110,7 +128,6 @@ func (h *userHandler) CheckEamilAvailablelity(c *gin.Context)  {
 		c.JSON(http.StatusUnprocessableEntity, response)
 		return
 
-
 	}
 
 	isEmailAvailable, err := h.userService.IsEmailAvailable(input)
@@ -123,15 +140,13 @@ func (h *userHandler) CheckEamilAvailablelity(c *gin.Context)  {
 		return
 	}
 
-	
-
 	data := gin.H{
 		"is_available": isEmailAvailable,
 	}
 
 	metaMessage := "Email has been used"
 
-	if isEmailAvailable{
+	if isEmailAvailable {
 		metaMessage = "Email is Available"
 	}
 
@@ -144,7 +159,7 @@ func (h *userHandler) CheckEamilAvailablelity(c *gin.Context)  {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *userHandler) UploadAvatar(c *gin.Context)  {
+func (h *userHandler) UploadAvatar(c *gin.Context) {
 
 	file, err := c.FormFile("avatar")
 	data := gin.H{"is_uplaoded": false}
@@ -158,7 +173,10 @@ func (h *userHandler) UploadAvatar(c *gin.Context)  {
 		return
 	}
 
-	userID := 12
+	currentUser := c.MustGet("currentUser").(entities.User)
+
+	userID := currentUser.ID
+
 	path := fmt.Sprintf("images/%d-%s", userID, file.Filename)
 	err = c.SaveUploadedFile(file, path)
 
@@ -167,7 +185,7 @@ func (h *userHandler) UploadAvatar(c *gin.Context)  {
 
 		c.JSON(http.StatusBadRequest, response)
 		return
-		
+
 	}
 
 	_, err = h.userService.SaveAvatar(userID, path)
@@ -185,6 +203,5 @@ func (h *userHandler) UploadAvatar(c *gin.Context)  {
 	response := helper.APIResponse(meta, data)
 
 	c.JSON(http.StatusOK, response)
-		
 
 }
