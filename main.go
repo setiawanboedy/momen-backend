@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -36,24 +35,25 @@ func main() {
 	authService := auth.NewService()
 	transService := transaction.NewService(transRepository)
 
-	trans,_ := transService.FindTrans(20)
-	fmt.Println(len(trans))
 
 	userHandler := handler.NewUserHandler(userService, authService)
+	transHandler := handler.NewTransactionHandler(transService)
 
 	router := gin.Default()
 
 	api := router.Group("/api/v1")
 
 	//endpoint
-	api.POST("/users", userHandler.RegiterUser)
-	api.POST("/sessions", userHandler.LoginUser)
+	api.POST("/register", userHandler.RegiterUser)
+	api.POST("/login", userHandler.LoginUser)
 	api.POST("/email_chekers", userHandler.CheckEamilAvailablelity)
 	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
+	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
 
 	router.Run()
 
 }
+
 
 func authMiddleware(authService auth.AuthService, userService users.Service) gin.HandlerFunc {
 	// Middleware
@@ -108,9 +108,4 @@ func authMiddleware(authService auth.AuthService, userService users.Service) gin
 	}
 }
 
-// ambil nilai header authorization
-// dari header ambil dari token
-// validasi token
-// ambil user_id
-// ambil user dari db berdasarkan id lewat sevice
-// set context isinya user
+
