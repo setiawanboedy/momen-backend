@@ -9,5 +9,5 @@ type User struct {
 	PasswordHash   string
 	AvatarFileName string
 	CreatedAt      time.Time
-	UpdateAt       time.Time
+	UpdatedAt       time.Time
 }

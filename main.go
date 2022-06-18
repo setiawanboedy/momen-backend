@@ -40,6 +40,7 @@ func main() {
 	transHandler := handler.NewTransactionHandler(transService)
 
 	router := gin.Default()
+	router.Static("/images","./images")
 
 	api := router.Group("/api/v1")
 
@@ -49,6 +50,7 @@ func main() {
 	api.POST("/email_chekers", userHandler.CheckEamilAvailablelity)
 	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
+	api.POST("/transaction", authMiddleware(authService, userService), transHandler.CreateTransaction)
 
 	router.Run()
 

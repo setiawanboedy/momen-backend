@@ -7,7 +7,8 @@ type Transaction struct {
 	UserID      int
 	Name        string
 	Description string
+	Category    string
 	Amount      int
 	CreatedAt   time.Time
-	UpdateAt    time.Time
+	UpdatedAt    time.Time
 }

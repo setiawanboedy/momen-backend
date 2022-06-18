@@ -4,6 +4,7 @@ import "errors"
 
 type Service interface {
 	GetTransactions(userID int) ([]Transaction, error)
+	CreateTransaction(input TransactionInput) (Transaction, error)
 }
 
 type service struct {
@@ -27,4 +28,19 @@ func (s *service) GetTransactions(userID int) ([]Transaction, error) {
 
 	return transaction, errors.New("no trans found")
 
+}
+
+func (s *service) CreateTransaction(input TransactionInput) (Transaction, error) {
+	transaction := Transaction{}
+	transaction.Name = input.Name
+	transaction.Description = input.Description
+	transaction.Category = input.Category
+	transaction.Amount = input.Amount
+	transaction.UserID = input.UserID
+	newTransaction, err := s.repository.Save(transaction)
+
+	if err != nil {
+		return newTransaction, err
+	}
+	return newTransaction, nil
 }
