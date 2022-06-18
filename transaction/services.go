@@ -5,6 +5,7 @@ import "errors"
 type Service interface {
 	GetTransactions(userID int) ([]Transaction, error)
 	CreateTransaction(input TransactionInput) (Transaction, error)
+	UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput)(Transaction, error)
 }
 
 type service struct {
@@ -43,4 +44,26 @@ func (s *service) CreateTransaction(input TransactionInput) (Transaction, error)
 		return newTransaction, err
 	}
 	return newTransaction, nil
+}
+
+func (s *service)UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput)(Transaction, error)  {
+	transaction, err := s.repository.FindByID(inputID.ID)
+	if err != nil {
+		return transaction, err
+	}
+
+	if transaction.UserID != inputData.UserID {
+		return transaction, errors.New("not owner of transaction")
+	}
+
+	transaction.Name = inputData.Name
+	transaction.Description = inputData.Description
+	transaction.Category = inputData.Category
+	transaction.Amount = inputData.Amount
+
+	updateTransaction, err := s.repository.UpdateTransaction(transaction)
+	if err != nil {
+		return updateTransaction, err
+	}
+	return updateTransaction, nil
 }

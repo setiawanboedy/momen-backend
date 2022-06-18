@@ -74,3 +74,55 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	response := helper.APIResponse(meta, transaction.FormatTransaction(newTransaction))
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *transactionHandler)UpdateTransaction(c *gin.Context)  {
+	var inputID transaction.GetTransactionInputID
+
+	err := c.ShouldBindUri(&inputID)
+
+	if err != nil {
+		metaUnprocess := helper.Meta{
+			Message: "Failed to update transactions", Code: http.StatusUnprocessableEntity, Status: "error",
+		}
+		errs := ErrorValidationHandler(err)
+
+		errorMessage := gin.H{"error": errs}
+		response := helper.APIResponse(metaUnprocess, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	var inputData transaction.TransactionInput
+	err = c.ShouldBindJSON(&inputData)
+
+	if err != nil {
+		metaUnprocess := helper.Meta{
+			Message: "Failed to update transactions", Code: http.StatusUnprocessableEntity, Status: "error",
+		}
+		errs := ErrorValidationHandler(err)
+
+		errorMessage := gin.H{"error": errs}
+		response := helper.APIResponse(metaUnprocess, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(users.User)
+	inputData.UserID = currentUser.ID
+
+	updateTransaction, err := h.service.UpdateTransaction(inputID, inputData)
+
+	if err != nil {
+		metaBadRequest := helper.Meta{
+			Message: "Failed to update transactions", Code: http.StatusBadRequest, Status: "error",
+		}
+		response := helper.APIResponse(metaBadRequest, nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	metaSuccess := helper.Meta{
+		Message: "Success to update transaction", Code: http.StatusOK, Status: "success",
+	}
+	response := helper.APIResponse(metaSuccess, transaction.FormatTransaction(updateTransaction))
+	c.JSON(http.StatusOK, response)
+}

@@ -7,3 +7,7 @@ type TransactionInput struct {
 	Category    string `json:"category" binding:"required"`
 	Amount      int    `json:"amount" binding:"required"`
 }
+
+type GetTransactionInputID struct {
+	ID int `uri:"id" binding:"required"`
+}

@@ -51,6 +51,7 @@ func main() {
 	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
 	api.POST("/transaction", authMiddleware(authService, userService), transHandler.CreateTransaction)
+	api.PUT("/transaction/:id", authMiddleware(authService, userService), transHandler.UpdateTransaction)
 
 	router.Run()
 
