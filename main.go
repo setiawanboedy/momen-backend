@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -8,8 +9,8 @@ import (
 	"momen/auth"
 	"momen/handler"
 	"momen/helper"
-	"momen/repositories"
-	"momen/services"
+	"momen/transaction"
+	"momen/users"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -28,9 +29,15 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
-	userRepository := repositories.NewRepository(db)
-	userService := services.NewService(userRepository)
+	userRepository := users.NewRepository(db)
+	transRepository := transaction.NewRepository(db)
+
+	userService := users.NewService(userRepository)
 	authService := auth.NewService()
+	transService := transaction.NewService(transRepository)
+
+	trans,_ := transService.FindTrans(20)
+	fmt.Println(len(trans))
 
 	userHandler := handler.NewUserHandler(userService, authService)
 
@@ -48,7 +55,7 @@ func main() {
 
 }
 
-func authMiddleware(authService auth.AuthService, userService services.Service) gin.HandlerFunc {
+func authMiddleware(authService auth.AuthService, userService users.Service) gin.HandlerFunc {
 	// Middleware
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")

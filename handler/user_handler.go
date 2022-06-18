@@ -3,26 +3,23 @@ package handler
 import (
 	"fmt"
 	"momen/auth"
-	"momen/entities"
 	"momen/helper"
-	"momen/input_post"
-	"momen/services"
+	"momen/users"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 type userHandler struct {
-	userService services.Service
+	userService users.Service
 	authService auth.AuthService
 }
 
-func NewUserHandler(userService services.Service, authService auth.AuthService) *userHandler {
+func NewUserHandler(userService users.Service, authService auth.AuthService) *userHandler {
 	return &userHandler{userService, authService}
 }
 
 func (h *userHandler) RegiterUser(c *gin.Context) {
-	var input inputpost.RegisterInput
+	var input users.RegisterInput
 	err := c.ShouldBindJSON(&input)
 
 	metaError := helper.Meta{
@@ -55,7 +52,7 @@ func (h *userHandler) RegiterUser(c *gin.Context) {
 		return
 	}
 
-	formater := helper.FormatUser(user, token)
+	formater := users.FormatUser(user, token)
 	meta := helper.Meta{
 		Message: "Account has been created", Code: http.StatusOK, Status: "Success",
 	}
@@ -66,7 +63,7 @@ func (h *userHandler) RegiterUser(c *gin.Context) {
 }
 
 func (h *userHandler) LoginUser(c *gin.Context) {
-	var input inputpost.LoginInput
+	var input users.LoginInput
 
 	err := c.ShouldBindJSON(&input)
 	metaError := helper.Meta{
@@ -101,7 +98,7 @@ func (h *userHandler) LoginUser(c *gin.Context) {
 		return
 	}
 
-	formater := helper.FormatUser(user, token)
+	formater := users.FormatUser(user, token)
 	meta := helper.Meta{
 		Message: "Login Successfully", Code: http.StatusOK, Status: "Success",
 	}
@@ -113,7 +110,7 @@ func (h *userHandler) LoginUser(c *gin.Context) {
 
 // cek email availabelity
 func (h *userHandler) CheckEamilAvailablelity(c *gin.Context) {
-	var input inputpost.CheckEamilInput
+	var input users.CheckEamilInput
 
 	err := c.ShouldBindJSON(&input)
 	metaError := helper.Meta{
@@ -173,7 +170,7 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 		return
 	}
 
-	currentUser := c.MustGet("currentUser").(entities.User)
+	currentUser := c.MustGet("currentUser").(users.User)
 
 	userID := currentUser.ID
 
