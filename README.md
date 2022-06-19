@@ -152,8 +152,8 @@ This app is for help user to make records of their income or expenses
 
 ### Delete Transaction
 	Request:
-	- Method: PUT
-	- Endpoint: "/api/transaction/:transaction_id/:wallet_id"
+	- Method: DELETE
+	- Endpoint: "/api/transaction/{id}"
 	- Header:
 		- Content-Type: application/json
 	Response:
