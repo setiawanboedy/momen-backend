@@ -52,6 +52,7 @@ func main() {
 	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
 	api.POST("/transaction", authMiddleware(authService, userService), transHandler.CreateTransaction)
 	api.PUT("/transaction/:id", authMiddleware(authService, userService), transHandler.UpdateTransaction)
+	api.DELETE("/transaction/:id", authMiddleware(authService, userService), transHandler.DeleteTransaction)
 
 	router.Run()
 

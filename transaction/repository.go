@@ -4,9 +4,10 @@ import "gorm.io/gorm"
 
 type Repository interface {
 	FindTransByID(userID int) ([]Transaction, error)
-	Save(transaction Transaction) (Transaction, error)
+	Create(transaction Transaction) (Transaction, error)
 	FindByID(userID int) (Transaction, error)
 	UpdateTransaction(transaction Transaction) (Transaction, error)
+	DeleteTransaction(transaction Transaction) error
 }
 
 type repository struct {
@@ -28,7 +29,7 @@ func (r *repository) FindTransByID(userID int) ([]Transaction, error) {
 	return transactions, nil
 }
 
-func (r *repository) Save(transaction Transaction) (Transaction, error) {
+func (r *repository) Create(transaction Transaction) (Transaction, error) {
 	err := r.db.Create(&transaction).Error
 
 	if err != nil {
@@ -54,4 +55,13 @@ func (r *repository) UpdateTransaction(transaction Transaction) (Transaction, er
 	}
 
 	return transaction, nil
+}
+
+func (r *repository) DeleteTransaction(transaction Transaction) error {
+	err := r.db.Delete(&transaction).Error
+
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -5,7 +5,8 @@ import "errors"
 type Service interface {
 	GetTransactions(userID int) ([]Transaction, error)
 	CreateTransaction(input TransactionInput) (Transaction, error)
-	UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput)(Transaction, error)
+	UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput) (Transaction, error)
+	DeleteTransaction(transID int) error
 }
 
 type service struct {
@@ -38,15 +39,15 @@ func (s *service) CreateTransaction(input TransactionInput) (Transaction, error)
 	transaction.Category = input.Category
 	transaction.Amount = input.Amount
 	transaction.UserID = input.UserID
-	newTransaction, err := s.repository.Save(transaction)
 
+	newTransaction, err := s.repository.Create(transaction)
 	if err != nil {
 		return newTransaction, err
 	}
 	return newTransaction, nil
 }
 
-func (s *service)UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput)(Transaction, error)  {
+func (s *service) UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput) (Transaction, error) {
 	transaction, err := s.repository.FindByID(inputID.ID)
 	if err != nil {
 		return transaction, err
@@ -66,4 +67,17 @@ func (s *service)UpdateTransaction(inputID GetTransactionInputID, inputData Tran
 		return updateTransaction, err
 	}
 	return updateTransaction, nil
+}
+
+func (s *service) DeleteTransaction(transID int) error  {
+	transaction, err := s.repository.FindByID(transID)
+
+	if err != nil {
+		return err
+	}
+	err = s.repository.DeleteTransaction(transaction)
+	if err != nil {
+		return err
+	}
+	return nil
 }

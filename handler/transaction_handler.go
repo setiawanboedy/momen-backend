@@ -23,6 +23,10 @@ func (h *transactionHandler) GetTransactions(c *gin.Context) {
 	currentUser := c.MustGet("currentUser").(users.User)
 	userID := currentUser.ID
 	transactions, err := h.service.GetTransactions(userID)
+	totalTrans := 0
+	for _, amount := range transactions{
+		totalTrans += amount.Amount
+	}
 
 	metaError := helper.Meta{
 		Message: "error to get transactions", Code: http.StatusBadRequest, Status: "error",
@@ -36,7 +40,8 @@ func (h *transactionHandler) GetTransactions(c *gin.Context) {
 	meta := helper.Meta{
 		Message: "List of transactions", Code: http.StatusOK, Status: "success",
 	}
-	response := helper.APIResponse(meta, transaction.FormatTransactions(transactions))
+
+	response := helper.APIResponseTransactions(meta, totalTrans, transaction.FormatTransactions(transactions))
 
 	c.JSON(http.StatusOK, response)
 
@@ -75,7 +80,7 @@ func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	c.JSON(http.StatusOK, response)
 }
 
-func (h *transactionHandler)UpdateTransaction(c *gin.Context)  {
+func (h *transactionHandler) UpdateTransaction(c *gin.Context) {
 	var inputID transaction.GetTransactionInputID
 
 	err := c.ShouldBindUri(&inputID)
@@ -124,5 +129,40 @@ func (h *transactionHandler)UpdateTransaction(c *gin.Context)  {
 		Message: "Success to update transaction", Code: http.StatusOK, Status: "success",
 	}
 	response := helper.APIResponse(metaSuccess, transaction.FormatTransaction(updateTransaction))
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *transactionHandler) DeleteTransaction(c *gin.Context)  {
+	var inputID transaction.DeleteTransactionInputID
+
+	err := c.ShouldBindUri(&inputID)
+	if err != nil {
+		metaUnprocess := helper.Meta{
+			Message: "Failed to delete transactions", Code: http.StatusUnprocessableEntity, Status: "error",
+		}
+		errs := ErrorValidationHandler(err)
+
+		errorMessage := gin.H{"error": errs}
+		response := helper.APIResponse(metaUnprocess, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	err = h.service.DeleteTransaction(inputID.ID)
+
+	if err != nil {
+		metaBadRequest := helper.Meta{
+			Message: "Failed to delete transactions", Code: http.StatusBadRequest, Status: "error",
+		}
+		response := helper.APIResponse(metaBadRequest, nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	metaSuccess := helper.Meta{
+		Message: "Success to delete transaction", Code: http.StatusOK, Status: "success",
+	}
+
+	message := gin.H{"delete": true}
+	response := helper.APIResponse(metaSuccess, message)
 	c.JSON(http.StatusOK, response)
 }

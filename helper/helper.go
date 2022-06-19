@@ -25,29 +25,23 @@ func APIResponse(meta Meta, data interface{}) Response {
 	return responsData
 }
 
-// type ResponseTrans struct {
-// 	MetaTrans `json:"meta"`
-// 	Data interface{} `json:"data"`
-// }
+type ResponseTrans struct {
+	Meta Meta `json:"meta"`
+	TotalTransaction int `json:"total_transaction"`
+	Transactions interface{} `json:"transactions"`
+}
 
-// type MetaTrans struct {
-// 	Message string `json:"message"`
-// 	Code int `json:"code"`
-// 	Amount int `json:"amount"`
-// 	Status string `json:"status"`
-// }
+func APIResponseTransactions(meta Meta, totalTrans int, data interface{}) ResponseTrans  {
+	metaData := Meta{
+		Message: meta.Message,
+		Code: meta.Code,
+		Status: meta.Status,
+	}
 
-// func APIResponseTrans(meta MetaTrans, data interface{}) ResponseTrans {
-// 	metaTrans := MetaTrans{
-// 		Message: meta.Message,
-// 		Amount: meta.Amount,
-// 		Code: meta.Code,
-// 		Status: meta.Status,
-// 	}
-
-// 	responsData := ResponseTrans{
-// 		MetaTrans: metaTrans,
-// 		Data: data,
-// 	}
-// 	return responsData
-// }
+	responsData := ResponseTrans{
+		Meta: metaData,
+		TotalTransaction: totalTrans,
+		Transactions: data,
+	}
+	return responsData
+}
