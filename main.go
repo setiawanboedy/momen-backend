@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -8,8 +9,11 @@ import (
 	"momen/auth"
 	"momen/handler"
 	"momen/helper"
+	"momen/migration"
 	"momen/transaction"
 	"momen/users"
+
+	"momen/utils"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -20,12 +24,22 @@ import (
 func main() {
 
 	// database
-	dsn := "root:@tcp(127.0.0.1:3306)/momen?charset=utf8mb4&parseTime=True&loc=Local"
+	_, dbConfig := utils.DatabaseSettings()
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbConfig.DBUser, dbConfig.DBPassword, dbConfig.DBHost, dbConfig.DBPort, dbConfig.DBName)
+	
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	// cek database
 	if err != nil {
 		log.Fatal(err.Error())
+	}
+
+	// automigrate
+	for _, model := range migration.MigrationModels(){
+		err := db.Debug().AutoMigrate(model.Model)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	userRepository := users.NewRepository(db)

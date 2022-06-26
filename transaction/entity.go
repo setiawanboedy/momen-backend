@@ -3,12 +3,12 @@ package transaction
 import "time"
 
 type Transaction struct {
-	ID          int
-	UserID      int
-	Name        string
-	Description string
-	Category    string
-	Amount      int
+	ID          int    `gorm:"size:36;not null;uniqueIndex;primary_key"`
+	UserID      int    `gorm:"size:36;index"`
+	Name        string `gorm:"size:100;not null"`
+	Description string `gorm:"size:100;not null"`
+	Category    string `gorm:"size:100;not null"`
+	Amount      int    `gorm:"size:100;not null"`
 	CreatedAt   time.Time
-	UpdatedAt    time.Time
+	UpdatedAt   time.Time
 }

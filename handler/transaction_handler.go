@@ -19,7 +19,7 @@ func NewTransactionHandler(service transaction.Service) *transactionHandler {
 }
 
 func (h *transactionHandler) GetTransactions(c *gin.Context) {
-
+	
 	currentUser := c.MustGet("currentUser").(users.User)
 	userID := currentUser.ID
 	transactions, err := h.service.GetTransactions(userID)
