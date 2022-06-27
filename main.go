@@ -58,9 +58,9 @@ func main() {
 	api := router.Group("/api/v1")
 
 	//endpoint
-	api.POST("/register", userHandler.RegiterUser)
-	api.POST("/login", userHandler.LoginUser)
-	api.POST("/email_chekers", userHandler.CheckEamilAvailablelity)
+	api.POST("/register", authMiddleware(authService, userService), userHandler.RegiterUser)
+	api.POST("/login", authMiddleware(authService, userService), userHandler.LoginUser)
+	api.POST("/email_chekers", authMiddleware(authService, userService), userHandler.CheckEamilAvailablelity)
 	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
 	api.POST("/transaction", authMiddleware(authService, userService), transHandler.CreateTransaction)
