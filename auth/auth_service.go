@@ -26,6 +26,7 @@ func NewService() *jwtService {
 func (s *jwtService) GenerateToken(userID int) (string, error) {
 	_,dbConfig := utils.DatabaseSettings()
 
+	SECRET_KEY := []byte(dbConfig.SecretKey)
 
 	tokenHourLifespanString := "24"
 
@@ -43,7 +44,7 @@ func (s *jwtService) GenerateToken(userID int) (string, error) {
 	// token header
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 
-	signToken, err := token.SignedString(dbConfig.SecretKey)
+	signToken, err := token.SignedString(SECRET_KEY)
 
 	if err != nil {
 		return signToken, err
@@ -54,13 +55,14 @@ func (s *jwtService) GenerateToken(userID int) (string, error) {
 
 func (s *jwtService) ValidateToken(token string) (*jwt.Token, error)  {
 	_,dbConfig := utils.DatabaseSettings()
+	SECRET_KEY := []byte(dbConfig.SecretKey)
 	tokenParse, err := jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		_, ok := t.Method.(*jwt.SigningMethodHMAC)
 
 		if !ok {
 			return nil, errors.New("invalid token")
 		}
-		return []byte(dbConfig.SecretKey), nil
+		return []byte(SECRET_KEY), nil
 	})
 
 	if err != nil {
