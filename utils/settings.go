@@ -8,8 +8,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type Settings interface{
-	DatabaseSettings() (AppConfig,DBConfig)
+type Settings interface {
+	DatabaseSettings() (AppConfig, DBConfig)
 }
 
 type AppConfig struct {
@@ -21,24 +21,25 @@ type AppConfig struct {
 type DBConfig struct {
 	DBHost     string
 	DBUser     string
+	SecretKey string
 	DBPassword string
 	DBName     string
 	DBPort     string
 	DBDriver   string
 }
 
-func Initialize(appConfig AppConfig)  {
+func Initialize(appConfig AppConfig) {
 	fmt.Println("welcome to" + appConfig.AppName)
 }
 
-func getEnv(key, fallback string) string  {
+func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
 	return fallback
 }
 
-func DatabaseSettings() (AppConfig,DBConfig) {
+func DatabaseSettings() (AppConfig, DBConfig) {
 	var appConfig = AppConfig{}
 	var dbConfig = DBConfig{}
 
@@ -55,8 +56,9 @@ func DatabaseSettings() (AppConfig,DBConfig) {
 	dbConfig.DBUser = getEnv("DB_USER", "root")
 	dbConfig.DBPassword = getEnv("DB_PASSWORD", "")
 	dbConfig.DBName = getEnv("DB_NAME", "momen")
+	dbConfig.SecretKey = getEnv("SECRET_KEY", "MOMEN_money")
 	dbConfig.DBPort = getEnv("DB_PORT", "3306")
-	dbConfig.DBDriver = getEnv("DB_DRIVER", "mysql")
+	dbConfig.DBDriver = getEnv("DB_DRIVER", "postgresql")
 
 	return appConfig, dbConfig
 }
