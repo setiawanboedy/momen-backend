@@ -28,7 +28,7 @@ func APIResponse(meta Meta, data interface{}) Response {
 type ResponseTrans struct {
 	Meta Meta `json:"meta"`
 	TotalTransaction int `json:"total_transaction"`
-	Transactions interface{} `json:"transactions"`
+	Data interface{} `json:"data"`
 }
 
 func APIResponseTransactions(meta Meta, totalTrans int, data interface{}) ResponseTrans  {
@@ -41,7 +41,7 @@ func APIResponseTransactions(meta Meta, totalTrans int, data interface{}) Respon
 	responsData := ResponseTrans{
 		Meta: metaData,
 		TotalTransaction: totalTrans,
-		Transactions: data,
+		Data: data,
 	}
 	return responsData
 }
