@@ -4,6 +4,7 @@ import "errors"
 
 type Service interface {
 	GetTransactions(userID int) ([]Transaction, error)
+	GetDetailTransaction(transID int) (Transaction, error)
 	CreateTransaction(input TransactionInput) (Transaction, error)
 	UpdateTransaction(inputID GetTransactionInputID, inputData TransactionInput) (Transaction, error)
 	DeleteTransaction(transID int) error
@@ -30,6 +31,15 @@ func (s *service) GetTransactions(userID int) ([]Transaction, error) {
 
 	return transaction, errors.New("no trans found")
 
+}
+
+func (s *service) GetDetailTransaction(transID int) (Transaction, error)  {
+	transaction, err := s.repository.FindByID(transID)
+
+	if err != nil {
+		return transaction, err
+	}
+	return transaction, nil
 }
 
 func (s *service) CreateTransaction(input TransactionInput) (Transaction, error) {

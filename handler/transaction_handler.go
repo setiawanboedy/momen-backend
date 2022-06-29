@@ -47,6 +47,42 @@ func (h *transactionHandler) GetTransactions(c *gin.Context) {
 
 }
 
+func (h *transactionHandler) GetDetailTransaction(c *gin.Context) {
+	var inputID transaction.GetDetailTransactionID
+
+	err := c.ShouldBindUri(&inputID)
+	if err != nil {
+		metaUnprocess := helper.Meta{
+			Message: "Failed to detail transactions", Code: http.StatusUnprocessableEntity, Status: "error",
+		}
+		errs := ErrorValidationHandler(err)
+
+		errorMessage := gin.H{"error": errs}
+		response := helper.APIResponse(metaUnprocess, errorMessage)
+		c.JSON(http.StatusUnprocessableEntity, response)
+		return
+	}
+
+	detailTransaction, err := h.service.GetDetailTransaction(inputID.ID)
+
+	if err != nil {
+		metaBadRequest := helper.Meta{
+			Message: "Failed to detail transactions", Code: http.StatusBadRequest, Status: "error",
+		}
+		response := helper.APIResponse(metaBadRequest, nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	metaSuccess := helper.Meta{
+		Message: "Success to detail transaction", Code: http.StatusOK, Status: "success",
+	}
+
+
+	response := helper.APIResponse(metaSuccess, transaction.FormatTransaction(detailTransaction))
+	c.JSON(http.StatusOK, response)
+
+}
+
 func (h *transactionHandler) CreateTransaction(c *gin.Context) {
 	var input transaction.TransactionInput
 
