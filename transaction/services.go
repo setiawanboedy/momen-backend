@@ -34,7 +34,6 @@ func (s *service) GetTransactions(userID int) ([]Transaction, error) {
 
 func (s *service) CreateTransaction(input TransactionInput) (Transaction, error) {
 	transaction := Transaction{}
-	transaction.Name = input.Name
 	transaction.Description = input.Description
 	transaction.Category = input.Category
 	transaction.Amount = input.Amount
@@ -56,8 +55,6 @@ func (s *service) UpdateTransaction(inputID GetTransactionInputID, inputData Tra
 	if transaction.UserID != inputData.UserID {
 		return transaction, errors.New("not owner of transaction")
 	}
-
-	transaction.Name = inputData.Name
 	transaction.Description = inputData.Description
 	transaction.Category = inputData.Category
 	transaction.Amount = inputData.Amount
