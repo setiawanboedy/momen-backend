@@ -63,7 +63,7 @@ func main() {
 	api.POST("/email_chekers", userHandler.CheckEamilAvailablelity)
 	api.POST("/avatar", authMiddleware(authService, userService), userHandler.UploadAvatar)
 	api.GET("/transactions", authMiddleware(authService, userService), transHandler.GetTransactions)
-	api.GET("/transaction:id", authMiddleware(authService, userService), transHandler.GetDetailTransaction)
+	api.GET("/transaction/:id", authMiddleware(authService, userService), transHandler.GetDetailTransaction)
 	api.POST("/transaction", authMiddleware(authService, userService), transHandler.CreateTransaction)
 	api.PUT("/transaction/:id", authMiddleware(authService, userService), transHandler.UpdateTransaction)
 	api.DELETE("/transaction/:id", authMiddleware(authService, userService), transHandler.DeleteTransaction)
