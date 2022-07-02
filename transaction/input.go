@@ -2,7 +2,8 @@ package transaction
 
 type TransactionInput struct {
 	UserID      int
-	Description string `json:"description" binding:"required"`
+	ID          int    `json:"id"`
+	Description string `json:"description"`
 	Category    string `json:"category" binding:"required"`
 	Amount      int    `json:"amount" binding:"required"`
 }

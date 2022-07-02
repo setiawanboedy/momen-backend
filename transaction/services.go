@@ -44,6 +44,7 @@ func (s *service) GetDetailTransaction(transID int) (Transaction, error)  {
 
 func (s *service) CreateTransaction(input TransactionInput) (Transaction, error) {
 	transaction := Transaction{}
+	transaction.ID = input.ID
 	transaction.Description = input.Description
 	transaction.Category = input.Category
 	transaction.Amount = input.Amount
